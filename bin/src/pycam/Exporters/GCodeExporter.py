@@ -62,7 +62,7 @@ def _get_num_converter(step_width):
     digits = _get_num_of_significant_digits(step_width)
     format_string = "%%.%df" % digits
     return lambda number: decimal.Decimal(format_string % number)
-    
+
 
 class GCodeGenerator:
 
@@ -304,9 +304,7 @@ class GCodeGenerator:
                     (new_pos[index] != self.last_position[index]):
                 pos_string.append("%s%s" % (axis_spec, new_pos[index]))
                 self.last_position[index] = new_pos[index]
-        if rapid == self.last_rapid:
-            prefix = ""
-        elif rapid:
+        if rapid:
             prefix = "G0"
         else:
             prefix = "G1"
@@ -334,4 +332,3 @@ class GCodeGenerator:
             command = [command]
         for line in command:
             self.destination.write(line + os.linesep)
-
