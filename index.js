@@ -7,7 +7,7 @@ var options = {
   unit: "mm", // choose 'mm' or 'inch' for all numbers. By default 'mm' is assumed.
   collisionEngine: null, //Choose a specific collision detection engine. The default is 'triangles'. Use 'help' to get a list of possible engines.
   boundaryMode: null , // specify if the mill tool (including its radius) should move completely 'inside', 'along' or 'outside' the defined processing boundary.
-  disablePsyco: null , //disable the Psyco just-in-time-compiler even if it is available
+  disablePsyco: true , //disable the Psyco just-in-time-compiler even if it is available
   numberOfProcesses: null , //override the default detection of multiple CPU cores. Parallel processing only works with Python 2.6 (or later) or with the additional 'multiprocessing' module.
   enableServer: null , // enable a local server and (optionally) remote worker servers.
   remoteServer: null , //Connect to a remote task server to distribute the processing load. The server is given as an IP or arofr hostname with an optional port (default: 1250) separated by a colon.
@@ -15,7 +15,7 @@ var options = {
   serverAuthKey: null , //Secret used for connecting to a remote server or for granting access to remote clients.
   q: null , // quiet
   d: null , //debug
-  progress: null , //specify the type of progress bar used in non-GUI mode. The following options are available: text, none, bar, dot.
+  progress: "none" , //specify the type of progress bar used in non-GUI mode. The following options are available: text, none, bar, dot.
   profiling: null , //PROFILE_DESTINATION store profiling statistics in a file (only for debugging)
   v: null , // version
   // Export formats:
@@ -88,9 +88,13 @@ var exePath = path.resolve(__dirname, './bin/pycam');
 var optionsString = [exePath];
 
 for (const i in options) {
-  if (options[i] != null) { // Only print non-null options
+  if (options[i] != null && options[i] != true) { // Only print non-null options
     console.log("--" + camelCaseToDash(i) + "=" +  options[i]);
     optionsString.push("--" + camelCaseToDash(i) + "=" +  options[i]);
+  }
+  if (options[i] == true) { // options set to true is non-valued switches (like --disable-psyco etc)
+    console.log("--" + camelCaseToDash(i));
+    optionsString.push("--" + camelCaseToDash(i));
   }
 }
 
@@ -98,7 +102,7 @@ optionsString.push("test.stl")
 
 const { spawn } = require('child_process');
 // const ls = spawn("python", [exePath, "--unit=mm", "--export-gcode=file.gcode" ]);
-const ls = spawn("python", optionsString);
+const ls = spawn("pypy", optionsString);
 
 ls.stdout.on('data', (data) => {
   console.log(`stdout: ${data}`);
