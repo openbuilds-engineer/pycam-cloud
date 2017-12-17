@@ -1,3 +1,5 @@
+const fixPath = require('fix-path')();
+
 var options = {
   // PyCAM 0.5.1 CLI Options
   // General options:
@@ -84,16 +86,18 @@ var optionsString = [];
 
 for (const i in options) {
   if (options[i] != null) { // Only print non-null options
-    console.log(camelCaseToDash(i) + ` = ${options[i]}`);
-    optionsString.push(camelCaseToDash(i) + `=${options[i]}`);
+    console.log("--" + camelCaseToDash(i) + "=" +  options[i] + " ");
+    optionsString.push("--" + camelCaseToDash(i) + "=" +  options[i] + " ");
   }
 }
+
+optionsString.push("test.stl")
 
 var path = require('path');
 var exePath = path.resolve(__dirname, './bin/pycam');
 
 const { spawn } = require('child_process');
-const ls = spawn(exePath, optionsString);
+const ls = spawn("python", [exePath, "--unit=mm", "--export-gcode=file.gcode" ]);
 
 ls.stdout.on('data', (data) => {
   console.log(`stdout: ${data}`);

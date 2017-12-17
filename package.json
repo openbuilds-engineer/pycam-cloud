@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/openbuilds-engineer/pycam-cloud/issues"
   },
-  "homepage": "https://github.com/openbuilds-engineer/pycam-cloud#readme"
+  "homepage": "https://github.com/openbuilds-engineer/pycam-cloud#readme",
+  "dependencies": {
+    "fix-path": "^2.1.0"
+  }
 }
