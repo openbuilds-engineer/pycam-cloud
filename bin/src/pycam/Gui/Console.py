@@ -88,4 +88,3 @@ class ConsoleProgressBar(object):
         self.update(percent=100)
         # finish the line
         self.output.write(os.linesep)
-

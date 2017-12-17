@@ -15,7 +15,7 @@ var options = {
   serverAuthKey: null , //Secret used for connecting to a remote server or for granting access to remote clients.
   q: null , // quiet
   d: null , //debug
-  progress: "none" , //specify the type of progress bar used in non-GUI mode. The following options are available: text, none, bar, dot.
+  progress: "text" , //specify the type of progress bar used in non-GUI mode. The following options are available: text, none, bar, dot.
   profiling: null , //PROFILE_DESTINATION store profiling statistics in a file (only for debugging)
   v: null , // version
   // Export formats:
@@ -27,22 +27,22 @@ var options = {
   // Specify the tool parameters. The default tool is spherical and has a
   // diameter of 1 unit. The default speeds are 1000 units/minute
   // (feedrate) and 250 (spindle rotations per minute)
-  toolShape: null , // tool shape for the operation (cylindrical, spherical, toroidal)
-  toolSize: null , // diameter of the tool
+  toolShape: "spherical" , // tool shape for the operation (cylindrical, spherical, toroidal)
+  toolSize: 3.175 , // diameter of the tool
   toolTorusSize: null , // torus diameter of the tool (only for toroidal tool)
-  toolFeedrate: null , // allowed movement velocity of the tool (units/minute)
+  toolFeedrate: 800 , // allowed movement velocity of the tool (units/minute)
   toolSpindleSpeed: null ,  //rotation speed of the tool (S=???)
   toolId: null , //tool ID - to be used for tool selection via GCode (default: 1)
   // Process definition:
   // Specify the process parameters: toolpath strategy, layer height, and
   // others. A typical roughing operation is configured by default.
-  processPathDirection: null , // primary direction of the generated toolpath (x/y/xy)
-  processPathStrategy: null , //one of the available toolpath strategies (layer, surface, contour-follow, contour-polygon, engrave)
+  processPathDirection: "x" , // primary direction of the generated toolpath (x/y/xy)
+  processPathStrategy: "surface" , //one of the available toolpath strategies (layer, surface, contour-follow, contour-polygon, engrave)
   processMaterialAllowance: null , //minimum distance between the tool and the object (for rough processing)
   processStepDown: null , //he maximum thickness of each processed material layer (only for 'layer' strategy)
-  processOverlapPercent: null , // how much should two adjacent parallel toolpaths overlap each other (0..99)
+  processOverlapPercent: 80 , // how much should two adjacent parallel toolpaths overlap each other (0..99)
   processMillingStyle: null , //milling style (conventional / climb / ignore)
-  safetyHeight: null , // height for safe re-positioning moves
+  safetyHeight: 4 , // height for safe re-positioning moves
   processEngraveOffset: null , //engrave along the contour of a model with a given distance (only for 'engrave' strategy)
   // Boundary definition:
   // Specify the outer limits of the processing area (x/y/z). You may
@@ -102,7 +102,7 @@ optionsString.push("test.stl")
 
 const { spawn } = require('child_process');
 // const ls = spawn("python", [exePath, "--unit=mm", "--export-gcode=file.gcode" ]);
-const ls = spawn("pypy", optionsString);
+const ls = spawn("python", optionsString);
 
 ls.stdout.on('data', (data) => {
   console.log(`stdout: ${data}`);
