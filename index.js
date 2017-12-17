@@ -80,25 +80,31 @@ var options = {
   locationPstoedit: null // location of the PStoEdit executable. This program is required for importing SVG files.
 };
 
-var optionsString = "";
+var optionsString = [];
 
 for (const i in options) {
   if (options[i] != null) { // Only print non-null options
     console.log(camelCaseToDash(i) + ` = ${options[i]}`);
-    optionsString += camelCaseToDash(i) + `=${options[i]}`
+    optionsString.push(camelCaseToDash(i) + `=${options[i]}`);
   }
 }
 
 
-var path = require('path');
-var execFile = require('child_process').execFile;
-
 var exePath = path.resolve(__dirname, './bin/pycam');
-execFile(exePath, function(error, stderr) {
-   console.log('stderr: ', __dirname);
-   if (error !== null) {
-       console.log('exec error: ', error);
-   }
+
+const { spawn } = require('child_process');
+const ls = spawn(exePath, optionsString);
+
+ls.stdout.on('data', (data) => {
+  console.log(`stdout: ${data}`);
+});
+
+ls.stderr.on('data', (data) => {
+  console.log(`stderr: ${data}`);
+});
+
+ls.on('close', (code) => {
+  console.log(`child process exited with code ${code}`);
 });
 
 
