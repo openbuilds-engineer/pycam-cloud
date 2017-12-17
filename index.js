@@ -89,7 +89,7 @@ for (const i in options) {
   }
 }
 
-
+var path = require('path');
 var exePath = path.resolve(__dirname, './bin/pycam');
 
 const { spawn } = require('child_process');
