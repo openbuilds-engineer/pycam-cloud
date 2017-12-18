@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <title>pyCAM Cloud</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <style>
+    .btn-file {
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-file input[type=file] {
+        position: absolute;
+        top: 0;
+        right: 0;
+        min-width: 100%;
+        min-height: 100%;
+        font-size: 100px;
+        text-align: right;
+        filter: alpha(opacity=0);
+        opacity: 0;
+        outline: none;
+        background: white;
+        cursor: pointer;
+        display: block;
+    }
+
+    </style>
+  </head>
+  <body>
+
+    <form id="uploadform" enctype="multipart/form-data">
+      <span data-toggle="tooltip" data-placement="bottom" title="Open GCODE"   class="btn btn-xs btn-outline-secondary btn-file" title="Open a png, .jpg, .jpeg, .bmp, .gcode, .svg, .dxf, or .stl file" id="openbutton"><i class="fa fa-folder-open fa-fw"></i>Open STL<input id="filename" name="file" type="file" accept=".stl" /></span>
+    </form>
+
+    <div id="uploadprogress">
+      <div class="progress">
+        <div id="uploadprogressbar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="uploadprogressspan">0%</span></div>
+      </div>
+    </div>
+
+    <div id="pycamprogress">
+      <div class="progress">
+        <div id="pycamprogressbar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="pycamprogressspan">0%</span></div>
+      </div>
+    </div>
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io();
+      socket.on('pycamprogress', function(msg){
+        $("#pycamprogressspan").html(msg+"%")
+        console.log("pycam: " + msg + " %")
+        $('#pycamprogressbar').css('width', msg+'%').attr('aria-valuenow', msg);
+      });
+      socket.on('uploadprogress', function(msg){
+        $("#uploadprogressspan").html(msg+"%")
+        console.log("upload: " + msg + " %")
+        $('#uploadprogressbar').css('width', msg+'%').attr('aria-valuenow', msg);
+      });
+      socket.on('startupload', function(msg){
+        $("#uploadform").hide()
+        // $("#uploadprogress").show()
+      });
+      socket.on('doneupload', function(msg){
+        $("#uploadform").show()
+        // $("#uploadprogress").hide()
+        document.getElementById('filename').value = '';
+      });
+
+      $(document).ready(function() {
+
+        var fileName = document.getElementById('filename');
+        fileName.addEventListener('change', readFile, false);
+
+        function readFile() {
+           $.ajax({
+               url: '/',
+               type: 'POST',
+               data: new FormData($('#uploadform')[0]),
+               // Tell jQuery not to process data or worry about content-type
+               // You *must* include these options!
+               cache: false,
+               contentType: false,
+               processData: false,
+               // Custom XMLHttpRequest
+               xhr: function() {
+                   var myXhr = $.ajaxSettings.xhr();
+                   return myXhr;
+               },
+           });
+        }
+
+       });
+
+    </script>
+
+  </body>
+</html>

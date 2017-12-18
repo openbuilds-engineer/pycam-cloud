@@ -1,4 +1,69 @@
-const fixPath = require('fix-path')();
+var formidable = require('formidable')
+var express = require('express');
+var util = require('util');
+// socket.io
+var app = require('express')();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
+var uploadprogress = 0, lastsentuploadprogress = 0;
+var pycamprogress = 0, lastsentpycamprogress = 0;
+
+server.listen(3000);
+
+io.on('connection', function (socket) {
+  socket.join("sessionId");
+});
+
+app.use(express.static(__dirname + '/static'));
+
+app.get('/', function (req, res){
+    res.sendFile(__dirname + '/static/index.html');
+});
+
+app.post('/', function (req, res){
+    // console.log(req)
+    uploadprogress = 0
+    var form = new formidable.IncomingForm();
+
+    // form.parse(req);
+    form.parse(req, function(err, fields, files) {
+      // console.log(util.inspect({fields: fields, files: files}));
+      runpycam(files.file.path)
+    });
+
+    form.on('fileBegin', function (name, file){
+        // Emitted whenever a new file is detected in the upload stream. Use this event if you want to stream the file to somewhere else while buffering the upload on the file system.
+        console.log('Uploading ' + file.name);
+        file.path = __dirname + '/uploads/' + file.name;
+        io.sockets.in('sessionId').emit('startupload', 'STARTING');
+    });
+
+    form.on('progress', function(bytesReceived, bytesExpected) {
+        uploadprogress = parseInt(((bytesReceived * 100) / bytesExpected).toFixed(0));
+        if (uploadprogress != lastsentuploadprogress) {
+          io.sockets.in('sessionId').emit('uploadprogress', uploadprogress);
+          lastsentuploadprogress = uploadprogress;
+        }
+    });
+
+    form.on('file', function (name, file){
+        // Emitted whenever a field / file pair has been received. file is an instance of File.
+        // console.log('Uploaded ' + file.path);
+        io.sockets.in('sessionId').emit('doneupload', 'COMPLETE');
+    });
+
+    form.on('aborted', function() {
+      // Emitted when the request was aborted by the user. Right now this can be due to a 'timeout' or 'close' event on the socket. After this event is emitted, an error event will follow. In the future there will be a separate 'timeout' event (needs a change in the node core).
+    });
+
+    form.on('end', function() {
+      //Emitted when the entire request has been received, and all contained files have finished flushing to disk. This is a great place for you to send your response.
+    });
+
+    res.sendFile(__dirname + '/static/index.html');
+});
+
+
 
 var options = {
   // PyCAM 0.5.1 CLI Options
@@ -37,7 +102,7 @@ var options = {
   // Specify the process parameters: toolpath strategy, layer height, and
   // others. A typical roughing operation is configured by default.
   processPathDirection: "x" , // primary direction of the generated toolpath (x/y/xy)
-  processPathStrategy: "surface" , //one of the available toolpath strategies (layer, surface, contour-follow, contour-polygon, engrave)
+  processPathStrategy: "layer" , //one of the available toolpath strategies (layer, surface, contour-follow, contour-polygon, engrave)
   processMaterialAllowance: null , //minimum distance between the tool and the object (for rough processing)
   processStepDown: null , //he maximum thickness of each processed material layer (only for 'layer' strategy)
   processOverlapPercent: 80 , // how much should two adjacent parallel toolpaths overlap each other (0..99)
@@ -82,39 +147,65 @@ var options = {
   locationPstoedit: null // location of the PStoEdit executable. This program is required for importing SVG files.
 };
 
-var path = require('path');
-var exePath = path.resolve(__dirname, './bin/pycam');
+const fixPath = require('fix-path')();
 
-var optionsString = [exePath];
+function runpycam(stl) {
+  var path = require('path');
+  var exePath = path.resolve(__dirname, './bin/pycam');
 
-for (const i in options) {
-  if (options[i] != null && options[i] != true) { // Only print non-null options
-    console.log("--" + camelCaseToDash(i) + "=" +  options[i]);
-    optionsString.push("--" + camelCaseToDash(i) + "=" +  options[i]);
+  var optionsString = ["-u"]
+  optionsString.push(exePath);
+
+  for (const i in options) {
+    if (options[i] != null && options[i] != true) { // Only print non-null options
+      // console.log("--" + camelCaseToDash(i) + "=" +  options[i]);
+      optionsString.push("--" + camelCaseToDash(i) + "=" +  options[i]);
+    }
+    if (options[i] == true) { // options set to true is non-valued switches (like --disable-psyco etc)
+      // console.log("--" + camelCaseToDash(i));
+      optionsString.push("--" + camelCaseToDash(i));
+    }
   }
-  if (options[i] == true) { // options set to true is non-valued switches (like --disable-psyco etc)
-    console.log("--" + camelCaseToDash(i));
-    optionsString.push("--" + camelCaseToDash(i));
-  }
+
+  optionsString.push(stl)
+
+  const { spawn } = require('child_process');
+  // const ls = spawn("python", [exePath, "--unit=mm", "--export-gcode=file.gcode" ]);
+  const pycam = spawn("python", optionsString);
+
+  pycam.stdout.on('data', (data) => {
+    var string = JSON.stringify(data.toString().replace(/[\"]+/g, '')).replace(/^"(.*)"$/, '$1');;
+    var lines = string.split(/\r?\n|[\\b]+/);
+    for (i=0; i<lines.length; i++){
+      var line = lines[i];
+      // var line = line.replace("\\b", '');
+      if (line.length > 0 ) {
+
+        if (line.match(/[0-9]+% [A-Za-z0-9_.]+: [A-Za-z0-9_.]+ [A-Za-z0-9_.]+ [0-9]+\/[0-9]+/)) { // found a response from PyCAM --progress=text (buffering sometimes causes issues so only parse on exact regex match)
+          var pycamprogress = line.split("%")[0]
+          if (pycamprogress != lastsentpycamprogress) {
+            console.log("Progress: " + pycamprogress + "%")
+            io.sockets.to('sessionId').emit('pycamprogress', pycamprogress);
+            lastsentpycamprogress = pycamprogress;
+          }
+
+        } else {
+          console.log("stdout: " + line)
+        }
+      }
+    }
+
+  });
+
+  pycam.stderr.on('data', (data) => {
+
+  });
+
+  pycam.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+  });
+
 }
-
-optionsString.push("test.stl")
-
-const { spawn } = require('child_process');
-// const ls = spawn("python", [exePath, "--unit=mm", "--export-gcode=file.gcode" ]);
-const ls = spawn("python", optionsString);
-
-ls.stdout.on('data', (data) => {
-  console.log(`stdout: ${data}`);
-});
-
-ls.stderr.on('data', (data) => {
-  console.log(`stderr: ${data}`);
-});
-
-ls.on('close', (code) => {
-  console.log(`child process exited with code ${code}`);
-});
 
 
 function camelCaseToDash( myStr ) {
