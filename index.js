@@ -102,7 +102,7 @@ var options = {
   // Specify the process parameters: toolpath strategy, layer height, and
   // others. A typical roughing operation is configured by default.
   processPathDirection: "x" , // primary direction of the generated toolpath (x/y/xy)
-  processPathStrategy: "layer" , //one of the available toolpath strategies (layer, surface, contour-follow, contour-polygon, engrave)
+  processPathStrategy: "surface" , //one of the available toolpath strategies (layer, surface, contour-follow, contour-polygon, engrave)
   processMaterialAllowance: null , //minimum distance between the tool and the object (for rough processing)
   processStepDown: null , //he maximum thickness of each processed material layer (only for 'layer' strategy)
   processOverlapPercent: 80 , // how much should two adjacent parallel toolpaths overlap each other (0..99)

@@ -2,7 +2,8 @@
 <html>
   <head>
     <title>pyCAM Cloud</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="/lib/bs4/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <style>
@@ -30,77 +31,129 @@
   </head>
   <body>
 
-    <form id="uploadform" enctype="multipart/form-data">
-      <span data-toggle="tooltip" data-placement="bottom" title="Open GCODE"   class="btn btn-xs btn-outline-secondary btn-file" title="Open a png, .jpg, .jpeg, .bmp, .gcode, .svg, .dxf, or .stl file" id="openbutton"><i class="fa fa-folder-open fa-fw"></i>Open STL<input id="filename" name="file" type="file" accept=".stl" /></span>
-    </form>
-
-    <div id="uploadprogress">
-      <div class="progress">
-        <div id="uploadprogressbar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="uploadprogressspan">0%</span></div>
-      </div>
-    </div>
-
-    <div id="pycamprogress">
-      <div class="progress">
-        <div id="pycamprogressbar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="pycamprogressspan">0%</span></div>
-      </div>
-    </div>
-
-
+    <div class="container-fluid h-100">
+       <div class="row h-100">
+         <div class="col-md-4">
+           <div class="card shadow">
+             <div class="card-header clearfix">
+               <div class="float-left">
+                 <h5>stl</h5>
+               </div>
+               <div class="float-right">
+                 <form id="uploadform" enctype="multipart/form-data">
+                   <span data-toggle="tooltip" data-placement="bottom" title="Open GCODE"   class="btn btn-sm btn-outline-secondary btn-file" title="Open a png, .jpg, .jpeg, .bmp, .gcode, .svg, .dxf, or .stl file" id="openbutton"><i class="fa fa-folder-open fa-fw"></i>Open STL<input id="filename" name="file" type="file" accept=".stl" /></span>
+                 </form>
+               </div>
+             </div>
+             <div class="card-block">
 
 
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+                <!-- <ul id="filelistJSON"></ul> -->
+
+                <table class="table table-responsive-sm table-bordered table-striped table-sm">
+                  <thead>
+                    <tr>
+                      <th>Filename</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="filelistJSON">
+                    <tr>
+                      <td>No File Loaded</td>
+                        <td>
+                          <span class="badge badge-success">Active</span>
+                        </td>
+                      </tr>
+                  </tbody>
+                </table>
+
+
+               <div id="uploadprogress">
+                 <div class="progress">
+                   <div id="uploadprogressbar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="uploadprogressspan">0%</span></div>
+                 </div>
+               </div>
+
+               <div id="pycamprogress">
+                 <div class="progress">
+                   <div id="pycamprogressbar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span id="pycamprogressspan">0%</span></div>
+                 </div>
+               </div>
+             </div>
+             <div class="card-footer" style="height: 32px; padding-top: 2px; padding-left: 2px;">
+              <!--  -->
+             </div>
+           </div>
+         </div>
+         <div class="col-md-8">
+           <div class="card shadow">
+
+             <div class="card-header" style="height: 54px;">
+               <div class="float-left">
+                 <h5>preview</h5>
+               </div>
+               <div class="float-right">
+                 <!--  -->
+               </div>
+             </div>
+             <div class="card-block" id="renderCard">
+               <div id="renderArea" style="display: block;"></div>
+             </div>
+
+
+           </div>
+         </div>
+       </div>
+     </div>
+
+     <!-- <div id="alignbox" class="shadow" style="position:absolute;top:410px;left:10px;z-index:1;">
+
+             <div class="input-group input-group-small" style="">
+                 <input type="number" step="1" class="form-control input-x" placeholder="0">
+                 <div class="input-group-addon">
+                     X
+                 </div>
+             </div>
+             <div class="input-group input-group-small" style="margin-top:2px;">
+                 <input type="number" step="1" class="form-control input-y" placeholder="0">
+                 <div class="input-group-addon">
+                     Y
+                 </div>
+             </div>
+      </div> -->
+
+   </body>
+       <p>
+
+
+
+
+
+
+
+    <script src="/lib/bs4/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+    <script src="/lib/bs4/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="/lib/bs4/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.2/handlebars.min.js" crossorigin="anonymous"></script>
+
     <script>
-      var socket = io();
-      socket.on('pycamprogress', function(msg){
-        $("#pycamprogressspan").html(msg+"%")
-        console.log("pycam: " + msg + " %")
-        $('#pycamprogressbar').css('width', msg+'%').attr('aria-valuenow', msg);
-      });
-      socket.on('uploadprogress', function(msg){
-        $("#uploadprogressspan").html(msg+"%")
-        console.log("upload: " + msg + " %")
-        $('#uploadprogressbar').css('width', msg+'%').attr('aria-valuenow', msg);
-      });
-      socket.on('startupload', function(msg){
-        $("#uploadform").hide()
-        // $("#uploadprogress").show()
-      });
-      socket.on('doneupload', function(msg){
-        $("#uploadform").show()
-        // $("#uploadprogress").hide()
-        document.getElementById('filename').value = '';
-      });
-
-      $(document).ready(function() {
-
-        var fileName = document.getElementById('filename');
-        fileName.addEventListener('change', readFile, false);
-
-        function readFile() {
-           $.ajax({
-               url: '/',
-               type: 'POST',
-               data: new FormData($('#uploadform')[0]),
-               // Tell jQuery not to process data or worry about content-type
-               // You *must* include these options!
-               cache: false,
-               contentType: false,
-               processData: false,
-               // Custom XMLHttpRequest
-               xhr: function() {
-                   var myXhr = $.ajaxSettings.xhr();
-                   return myXhr;
-               },
-           });
-        }
-
-       });
 
     </script>
+    <script type="text/javascript" src="/lib/three.min.js"></script>
+    <script type="text/javascript" src="/lib/CSS3DRenderer.js"></script>
+    <script type="text/javascript" src="/lib/OrbitControls.js"></script>
+    <script type="text/javascript" src="/lib/STLLoader.js"></script>
+    <script type="text/javascript" src="/lib/THREE.MeshLine.js"></script>
+    <script type="text/javascript" src="/lib/bind.min.js"></script>
+
+    <script type="text/javascript" src="/js/grid.js"></script>
+    <script type="text/javascript" src="/js/viewer.js"></script>
+    <script type="text/javascript" src="/js/uibind.js"></script>
+    <script type="text/javascript" src="/js/stlloader.js"></script>
+    <script type="text/javascript" src="/js/index.js"></script>
+
 
   </body>
 </html>
