@@ -16,33 +16,31 @@ function loadSTL(data, filename) {
   mesh.receiveShadow = true;
 
   // center object
-  var size = new THREE.Vector3(); // create once and reuse
-  var box = new THREE.BoxHelper( mesh, 0xff00ff );
-  var box3 = new THREE.Box3();
-  box3.setFromObject( box );
-  box3.getSize( size )
-  box.name = "Bounding Box"
-  mesh.translateZ(-box3.min.z);
-  if ((box3.min.y - box3.max.y) > 0) {
-    mesh.translateY(box3.min.y +  size.y/2);
-  } else {
-    mesh.translateY(-box3.min.y - size.y/2);
-  }
-  if ((box3.min.x - box3.max.x) > 0) {
-    mesh.translateX(box3.min.x +  size.x/2);
-  } else {
-    mesh.translateX(-box3.min.x - size.x/2);
-  }
+  // var size = new THREE.Vector3(); // create once and reuse
+  // var box = new THREE.BoxHelper( mesh, 0xff00ff );
+  // var box3 = new THREE.Box3();
+  // box3.setFromObject( box );
+  // box3.getSize( size )
+  // box.name = "Bounding Box"
+  // mesh.translateZ(-box3.min.z);
+  // if ((box3.min.y - box3.max.y) > 0) {
+  //   mesh.translateY(box3.min.y +  size.y/2);
+  // } else {
+  //   mesh.translateY(-box3.min.y - size.y/2);
+  // }
+  // if ((box3.min.x - box3.max.x) > 0) {
+  //   mesh.translateX(box3.min.x +  size.x/2);
+  // } else {
+  //   mesh.translateX(-box3.min.x - size.x/2);
+  // }
 
   mesh.userData.filename = filename;
   mesh.userData.type = "stl";
-  mesh.userData.size = size;
+  // mesh.userData.size = size;
 
   // display
-  viewJSON.view.files.push(mesh);
-  files.push(mesh);
-  FileSTL.add(mesh);
-  fileDisplay.add(mesh);
+  viewJSON.view.files.push(mesh); //uibind.js keeps the state, we just add to it
+
 
 }
 

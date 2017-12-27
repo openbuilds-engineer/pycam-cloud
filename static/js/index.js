@@ -1,4 +1,5 @@
-var files = []; // array to hold all loaded files
+// var files = []; // array to hold all loaded files
+var gcode = ""
 
 var socket = io();
 socket.on('pycamprogress', function(msg){
@@ -19,11 +20,16 @@ socket.on('doneupload', function(msg){
   $("#uploadform").show()
   // $("#uploadprogress").hide()
 });
+socket.on('gcode', function(msg){
+  // console.log(msg)
+  gcode = msg;
+  loadGcode(gcode)
+});
 
 function readFile(evt) {
-    console.group("New FileOpen Event:");
+    // console.group("New FileOpen Event:");
     console.log(evt);
-    console.groupEnd();
+    // console.groupEnd();
     $("#drop1").dropdown("toggle");
     // Files
     var files = evt.target.files || evt.dataTransfer.files;
@@ -51,7 +57,7 @@ function loadFile(f) {
           // Nothing
         }
     }
-    document.getElementById('filename').value = '';
+    // document.getElementById('filename').value = '';
 
 }
 

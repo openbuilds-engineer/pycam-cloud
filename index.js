@@ -8,10 +8,29 @@ var io = require('socket.io')(server);
 var uploadprogress = 0, lastsentuploadprogress = 0;
 var pycamprogress = 0, lastsentpycamprogress = 0;
 
+var fs = require("fs");
+
+var starttime;
+
 server.listen(3000);
 
 io.on('connection', function (socket) {
   socket.join("sessionId");
+  // fs.readFile(__dirname + '/uploads/' + "file.gcode", "utf8", function(error, text) {
+  //   if (error)
+  //     throw error;
+  //   console.log("The file contained:", text);
+  //   io.sockets.in('sessionId').emit('gcode', text);
+  // });
+
+  socket.on('fetchgcode', function(data) {
+    fs.readFile(__dirname + '/uploads/' + "file.gcode", "utf8", function(error, text) {
+      if (error)
+        throw error;
+      console.log("The file contained:", text);
+      io.sockets.in('sessionId').emit('gcode', text);
+    });
+  })
 });
 
 app.use(express.static(__dirname + '/static'));
@@ -86,7 +105,7 @@ var options = {
   // Export formats:
   // Export the resulting toolpath or meta-data in various formats. These
   // options trigger the non-interactive mode. Thus the GUI is disabled.
-  exportGcode: "file.gcode", //export the generated toolpaths to a file
+  exportGcode: __dirname + '/uploads/file.gcode', //export the generated toolpaths to a file
   exportTaskConfig: null, //export the current task configuration (mainly for debugging)
   // Tool definition:
   // Specify the tool parameters. The default tool is spherical and has a
@@ -172,6 +191,7 @@ function runpycam(stl) {
   const { spawn } = require('child_process');
   // const ls = spawn("python", [exePath, "--unit=mm", "--export-gcode=file.gcode" ]);
   const pycam = spawn("python", optionsString);
+  starttime = +new Date();
 
   pycam.stdout.on('data', (data) => {
     var string = JSON.stringify(data.toString().replace(/[\"]+/g, '')).replace(/^"(.*)"$/, '$1');;
@@ -184,7 +204,17 @@ function runpycam(stl) {
         if (line.match(/[0-9]+% [A-Za-z0-9_.]+: [A-Za-z0-9_.]+ [A-Za-z0-9_.]+ [0-9]+\/[0-9]+/)) { // found a response from PyCAM --progress=text (buffering sometimes causes issues so only parse on exact regex match)
           var pycamprogress = line.split("%")[0]
           if (pycamprogress != lastsentpycamprogress) {
-            console.log("Progress: " + pycamprogress + "%")
+            var timestamp = +new Date();
+            var timeused = timestamp - starttime // milliseconds from start of job, to this % update
+            var ms = ((100 / pycamprogress) * timeused) // time remaining estimate
+            x = ms / 1000;
+            seconds = Math.round(x % 60);
+            x /= 60;
+            minutes = Math.round(x % 60);
+            x /= 60;
+            hours = Math.round(x % 24);
+
+            console.log("Progress: " + pycamprogress + "%, " + hours + "h:" + minutes + "m:" + seconds + "s remaining" )
             io.sockets.to('sessionId').emit('pycamprogress', pycamprogress);
             lastsentpycamprogress = pycamprogress;
           }
@@ -201,12 +231,22 @@ function runpycam(stl) {
 
   });
 
+  // pycam.on('close', (code) => {
+  //   console.log(`child process exited with code ${code}`);
+  // });
+
   pycam.on('close', (code) => {
     console.log(`child process exited with code ${code}`);
+    fs.readFile(__dirname + '/uploads/' + "file.gcode", "utf8", function(error, text) {
+      if (error)
+        throw error;
+      console.log("The file contained:", text);
+      io.sockets.in('sessionId').emit('gcode', text);
+    });
   });
 
-}
 
+}
 
 function camelCaseToDash( myStr ) {
     return myStr.replace( /([a-z])([A-Z])/g, '$1-$2' ).toLowerCase();

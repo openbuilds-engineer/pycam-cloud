@@ -3,8 +3,6 @@ var scene2, renderer2;
 var controls;
 var ambientLight;
 
-fileDisplay = new THREE.Object3D()
-
 init();
 animate();
 function init() {
@@ -71,9 +69,6 @@ function init() {
   // object.position.z = 0
   // scene2.add( object );
 	//
-
-  scene.add(fileDisplay)
-
 }
 function animate() {
   light.position.copy( camera.position );
