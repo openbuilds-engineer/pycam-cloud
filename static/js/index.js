@@ -2,8 +2,13 @@
 var gcode = ""
 
 var socket = io();
-socket.on('pycamprogress', function(msg){
-  $("#pycamprogressspan").html(msg+"%")
+socket.on('pycamprogress', function(data){
+  var msg = data[0]
+  var hour  = data[1]
+  var minute = data[2]
+  var second = data[3]
+  $("#pycamprogressspan").html(msg+"% - est " + hour + "h:" + minute + "m:" + second + "s remaining")
+  // $("#pycamprogressspan").html(msg+"%")
   console.log("pycam: " + msg + " %")
   $('#pycamprogressbar').css('width', msg+'%').attr('aria-valuenow', msg);
 });
@@ -23,7 +28,8 @@ socket.on('doneupload', function(msg){
 socket.on('gcode', function(msg){
   // console.log(msg)
   gcode = msg;
-  loadGcode(gcode)
+  openGCodeFromText();
+  // loadGcode(gcode)
 });
 
 function readFile(evt) {

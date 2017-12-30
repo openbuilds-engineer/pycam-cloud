@@ -169,6 +169,7 @@ var options = {
 const fixPath = require('fix-path')();
 
 function runpycam(stl) {
+  console.log(stl)
   var path = require('path');
   var exePath = path.resolve(__dirname, './bin/pycam');
 
@@ -213,9 +214,9 @@ function runpycam(stl) {
             minutes = Math.round(x % 60);
             x /= 60;
             hours = Math.round(x % 24);
-
+            var senddata = [pycamprogress, hours, minutes, seconds ]
             console.log("Progress: " + pycamprogress + "%, " + hours + "h:" + minutes + "m:" + seconds + "s remaining" )
-            io.sockets.to('sessionId').emit('pycamprogress', pycamprogress);
+            io.sockets.to('sessionId').emit('pycamprogress', senddata);
             lastsentpycamprogress = pycamprogress;
           }
 
@@ -237,12 +238,18 @@ function runpycam(stl) {
 
   pycam.on('close', (code) => {
     console.log(`child process exited with code ${code}`);
-    fs.readFile(__dirname + '/uploads/' + "file.gcode", "utf8", function(error, text) {
-      if (error)
-        throw error;
-      console.log("The file contained:", text);
-      io.sockets.in('sessionId').emit('gcode', text);
-    });
+    if (code == 0) {
+      fs.readFile(__dirname + '/uploads/' + "file.gcode", "utf8", function(error, text) {
+        if (error)
+          throw error;
+        // console.log("The file contained:", text);
+        io.sockets.in('sessionId').emit('gcode', text);
+        console.log("Ejected GCODE to Frontend")
+      });
+    } else {
+      console.log("FAILED to run PyCAM, not Ejecting GCODE to frontend")
+    }
+
   });
 
 

@@ -25,6 +25,8 @@ along with PyCAM.  If not, see <http://www.gnu.org/licenses/>.
 # extend the PYTHONPATH to include the "src" directory
 import sys
 import os
+import os.path
+
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(BASE_DIR, "src"))
 
